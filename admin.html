@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>لوحة الإدارة - BENAKRAB Shopping</title>
+  <link rel="stylesheet" href="css/style.css"/>
+  <style>
+    .admin-dashboard {
+      padding: 2rem;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    
+    .admin-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 2rem;
+      margin-top: 2rem;
+    }
+    
+    .admin-card {
+      background: white;
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      text-align: center;
+      transition: transform 0.3s ease;
+      border: 2px solid transparent;
+    }
+    
+    .admin-card:hover {
+      transform: translateY(-5px);
+      border-color: #4a90e2;
+    }
+    
+    .admin-card i {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+      color: #4a90e2;
+    }
+    
+    .admin-card h3 {
+      margin: 1rem 0;
+      color: #333;
+    }
+    
+    .admin-card p {
+      color: #666;
+      margin-bottom: 1.5rem;
+    }
+    
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin: 2rem 0;
+    }
+    
+    .stat-card {
+      background: white;
+      padding: 1.5rem;
+      border-radius: 8px;
+      text-align: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    
+    .stat-number {
+      font-size: 2rem;
+      font-weight: bold;
+      color: #4a90e2;
+    }
+    
+    .stat-label {
+      color: #666;
+      margin-top: 0.5rem;
+    }
+  </style>
+</head>
+<body>
+  <header style="background: #4a90e2; color: white; padding: 1rem;">
+    <div class="container">
+      <h1 style="margin: 0; text-align: center;">🛠 لوحة تحكم BENAKRAB Shopping</h1>
+    </div>
+  </header>
+
+  <div class="admin-dashboard">
+    <div class="stats-grid" id="statsGrid">
+      <div class="stat-card">
+        <div class="stat-number" id="totalOrders">0</div>
+        <div class="stat-label">إجمالي الطلبات</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number" id="pendingOrders">0</div>
+        <div class="stat-label">طلبات قيد الانتظار</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number" id="completedOrders">0</div>
+        <div class="stat-label">طلبات مكتملة</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number" id="totalProducts">0</div>
+        <div class="stat-label">عدد المنتجات</div>
+      </div>
+    </div>
+
+    <div class="admin-cards">
+      <div class="admin-card">
+        <i class="fas fa-shopping-bag"></i>
+        <h3>إدارة الطلبات</h3>
+        <p>عرض وإدارة جميع طلبات العملاء، تحديث الحالة وحذف الطلبات</p>
+        <a href="admin.html?page=orders" class="btn btn-primary">
+          <i class="fas fa-list"></i> عرض الطلبات
+        </a>
+      </div>
+      
+      <div class="admin-card">
+        <i class="fas fa-tshirt"></i>
+        <h3>إدارة المنتجات</h3>
+        <p>إضافة، تعديل وحذف المنتجات، الألوان والمقاسات المتاحة</p>
+        <a href="products-admin.html" class="btn btn-primary">
+          <i class="fas fa-cog"></i> إدارة المنتجات
+        </a>
+      </div>
+      
+      <div class="admin-card">
+        <i class="fas fa-truck"></i>
+        <h3>إدارة التوصيل</h3>
+        <p>تعديل أسعار التوصيل لكل ولاية ونوع التوصيل</p>
+        <a href="delivery-admin.html" class="btn btn-primary">
+          <i class="fas fa-map-marker-alt"></i> إدارة التوصيل
+        </a>
+      </div>
+      
+      <div class="admin-card">
+        <i class="fas fa-chart-bar"></i>
+        <h3>التقارير والإحصائيات</h3>
+        <p>عرض تقارير المبيعات والإحصائيات التفصيلية</p>
+        <button class="btn btn-secondary" onclick="loadReports()">
+          <i class="fas fa-chart-line"></i> عرض التقارير
+        </button>
+      </div>
+    </div>
+
+    <!-- قسم الطلبات (يظهر عند الضغط على عرض الطلبات) -->
+    <div id="ordersSection" style="display: none; margin-top: 3rem;">
+      <h2>📦 إدارة الطلبات</h2>
+      <div class="table-responsive">
+        <table class="orders-table">
+          <thead>
+            <tr>
+              <th>رقم الطلب</th>
+              <th>اسم الزبون</th>
+              <th>الهاتف</th>
+              <th>الولاية</th>
+              <th>المنتجات</th>
+              <th>المجموع</th>
+              <th>الحالة</th>
+              <th>التاريخ</th>
+              <th>إجراءات</th>
+            </tr>
+          </thead>
+          <tbody id="ordersBody">
+            <tr><td colspan="9">⏳ جاري تحميل الطلبات...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database.js"></script>
+  
+  <script>
+    // تهيئة Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyD0ft0WLOoSI_gIeRfPcOrk6M5QWDhXDJ4",
+      authDomain: "koka-888c8.firebaseapp.com",
+      databaseURL: "https://koka-888c8-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId: "koka-888c8",
+      storageBucket: "koka-888c8.firebasestorage.app",
+      messagingSenderId: "625698485689",
+      appId: "1:625698485689:web:1667934b75691ee223b268",
+      measurementId: "G-78SQER5MY6"
+    };
+    
+    if (!firebase.apps.length) {
+      firebase.initializeApp(firebaseConfig);
+    }
+  </script>
+
+  <script src="js/firebase.js"></script>
+  <script>
+    const ordersBody = document.getElementById('ordersBody');
+    const statsGrid = document.getElementById('statsGrid');
+
+    async function loadStats() {
+      try {
+        const orders = await window.firebaseService.getDeliveryOrders();
+        const products = await window.firebaseService.getProducts();
+        
+        const totalOrders = orders.length;
+        const pendingOrders = orders.filter(o => o.status === 'pending').length;
+        const completedOrders = orders.filter(o => o.status === 'completed').length;
+        const totalProducts = products.length;
+        
+        document.getElementById('totalOrders').textContent = totalOrders;
+        document.getElementById('pendingOrders').textContent = pendingOrders;
+        document.getElementById('completedOrders').textContent = completedOrders;
+        document.getElementById('totalProducts').textContent = totalProducts;
+      } catch (error) {
+        console.error('Error loading stats:', error);
+      }
+    }
+
+    async function loadOrders() {
+      ordersBody.innerHTML = "<tr><td colspan='9'>⏳ جاري تحميل الطلبات...</td></tr>";
+      const orders = await window.firebaseService.getDeliveryOrders();
+
+      if (!orders.length) {
+        ordersBody.innerHTML = "<tr><td colspan='9'>لا توجد طلبات.</td></tr>";
+        return;
+      }
+
+      // ترتيب الطلبات من الأحدث إلى الأقدم
+      orders.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+      ordersBody.innerHTML = "";
+      orders.forEach(order => {
+        const row = document.createElement("tr");
+        const orderDate = order.createdAt ? new Date(order.createdAt).toLocaleDateString('ar-EG') : 'غير محدد';
+        
+        row.innerHTML = `
+          <td>${order.id.substring(0, 8)}</td>
+          <td>${order.customerName || ""}</td>
+          <td>${order.phone || ""}</td>
+          <td>${order.wilaya || ""}</td>
+          <td>
+            ${
+              Array.isArray(order.products)
+                ? order.products.map(p => `${p.name} (x${p.qty})`).join("<br>")
+                : "لا توجد منتجات"
+            }
+          </td>
+          <td>${order.total || 0} دج</td>
+          <td class="status-${order.status}">
+            ${order.status === "completed" ? "✅ تم التوصيل" : "⏳ قيد الانتظار"}
+          </td>
+          <td>${orderDate}</td>
+          <td>
+            ${
+              order.status === "pending"
+                ? `<button class="btn-deliver" onclick="markDelivered('${order.id}')">✅ تم التوصيل</button>`
+                : `<button class="btn-pending" onclick="markPending('${order.id}')">↩️ إرجاع</button>`
+            }
+            <button class="btn-delete" onclick="deleteOrder('${order.id}')">🗑️ حذف</button>
+          </td>
+        `;
+        ordersBody.appendChild(row);
+      });
+    }
+
+    function showOrdersSection() {
+      document.getElementById('ordersSection').style.display = 'block';
+      loadOrders();
+    }
+
+    async function markDelivered(orderId) {
+      const res = await window.firebaseService.updateOrderStatus(orderId, "completed");
+      if (res.success) {
+        loadOrders();
+        loadStats();
+      } else alert("❌ خطأ في تحديث الحالة");
+    }
+
+    async function markPending(orderId) {
+      const res = await window.firebaseService.updateOrderStatus(orderId, "pending");
+      if (res.success) {
+        loadOrders();
+        loadStats();
+      } else alert("❌ خطأ في تحديث الحالة");
+    }
+
+    async function deleteOrder(orderId) {
+      if (!confirm("هل تريد حذف هذا الطلب؟")) return;
+      const res = await window.firebaseService.deleteOrder(orderId);
+      if (res.success) {
+        loadOrders();
+        loadStats();
+      } else alert("❌ خطأ في حذف الطلب");
+    }
+
+    function loadReports() {
+      alert('🚧 قسم التقارير قيد التطوير...');
+    }
+
+    // التحقق من وجود بارامتر في الرابط
+    document.addEventListener('DOMContentLoaded', function() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const page = urlParams.get('page');
+      
+      if (page === 'orders') {
+        showOrdersSection();
+      }
+      
+      loadStats();
+    });
+  </script>
+</body>
+</html>
