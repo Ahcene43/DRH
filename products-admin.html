@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>إدارة المنتجات - BENAKRAB Shopping</title>
+  <link rel="stylesheet" href="css/style.css"/>
+  <style>
+    .products-admin {
+      padding: 2rem;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+    
+    .admin-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+    
+    .products-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+      gap: 2rem;
+      margin-bottom: 3rem;
+    }
+    
+    .product-card {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      overflow: hidden;
+      transition: transform 0.3s ease;
+    }
+    
+    .product-card:hover {
+      transform: translateY(-5px);
+    }
+    
+    .product-image {
+      width: 100%;
+      height: 250px;
+      object-fit: cover;
+    }
+    
+    .product-info {
+      padding: 1.5rem;
+    }
+    
+    .product-name {
+      font-size: 1.2rem;
+      font-weight: bold;
+      margin-bottom: 0.5rem;
+      color: #333;
+    }
+    
+    .product-price {
+      font-size: 1.3rem;
+      font-weight: bold;
+      color: #4a90e2;
+      margin-bottom: 1rem;
+    }
+    
+    .product-meta {
+      display: flex;
+      justify-content: space-between;
+      color: #666;
+      font-size: 0.9rem;
+      margin-bottom: 1rem;
+    }
+    
+    .product-actions {
+      display: flex;
+      gap: 0.5rem;
+    }
+    
+    .btn-edit { background: #ffa500; color: white; }
+    .btn-delete { background: #f44336; color: white; }
+    .btn-toggle { background: #666; color: white; }
+    
+    .form-section {
+      background: white;
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      margin-bottom: 2rem;
+    }
+    
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+    
+    .colors-grid, .sizes-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 0.5rem;
+      margin: 1rem 0;
+    }
+    
+    .color-item, .size-item {
+      background: #f8f9fa;
+      padding: 0.5rem;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    .color-preview {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      border: 2px solid #ddd;
+    }
+    
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: #e9ecef;
+      padding: 0.25rem 0.75rem;
+      border-radius: 20px;
+      margin: 0.25rem;
+      font-size: 0.9rem;
+    }
+    
+    .chip-remove {
+      cursor: pointer;
+      color: #f44336;
+    }
+  </style>
+</head>
+<body>
+  <header style="background: #4a90e2; color: white; padding: 1rem;">
+    <div class="container">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <h1 style="margin: 0;">👕 إدارة المنتجات</h1>
+        <nav>
+          <a href="admin.html" class="btn btn-secondary" style="margin-right: 1rem;">
+            <i class="fas fa-arrow-right"></i> العودة للوحة التحكم
+          </a>
+          <a href="delivery-admin.html" class="btn btn-secondary">
+            <i class="fas fa-truck"></i> إدارة التوصيل
+          </a>
+        </nav>
+      </div>
+    </div>
+  </header>
+
+  <div class="products-admin">
+    <!-- قسم إضافة منتج جديد -->
+    <div class="form-section">
+      <h2><i class="fas fa-plus"></i> إضافة منتج جديد</h2>
+      <form id="productForm">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="productName">اسم المنتج *</label>
+            <input type="text" id="productName" required>
+          </div>
+          <div class="form-group">
+            <label for="productPrice">السعر (دج) *</label>
+            <input type="number" id="productPrice" required min="0">
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label for="productImage">رابط الصورة *</label>
+          <input type="url" id="productImage" required placeholder="https://example.com/image.jpg">
+        </div>
+        
+        <div class="form-group">
+          <label for="productDescription">وصف المنتج</label>
+          <textarea id="productDescription" rows="3"></textarea>
+        </div>
+        
+        <!-- الألوان -->
+        <div class="form-group">
+          <label>الألوان المتاحة</label>
+          <div class="colors-grid" id="colorsContainer">
+            <!-- سيتم إضافة الألوان ديناميكياً -->
+          </div>
+          <div style="margin-top: 1rem;">
+            <button type="button" class="btn btn-secondary" onclick="addColorField()">
+              <i class="fas fa-plus"></i> إضافة لون
+            </button>
+          </div>
+        </div>
+        
+        <!-- المقاسات -->
+        <div class="form-group">
+          <label>المقاسات المتاحة</label>
+          <div id="sizesContainer">
+            <!-- سيتم إضافة المقاسات ديناميكياً -->
+          </div>
+          <div style="margin-top: 1rem;">
+            <button type="button" class="btn btn-secondary" onclick="addSizeField()">
+              <i class="fas fa-plus"></i> إضافة مقاس
+            </button>
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label>
+            <input type="checkbox" id="productActive" checked>
+            المنتج نشط ومتوفر للعملاء
+          </label>
+        </div>
+        
+        <button type="submit" class="btn btn-success">
+          <i class="fas fa-save"></i> حفظ المنتج
+        </button>
+      </form>
+    </div>
+
+    <!-- قائمة المنتجات -->
+    <div class="admin-header">
+      <h2><i class="fas fa-list"></i> قائمة المنتجات</h2>
+      <div id="productsCount">جاري التحميل...</div>
+    </div>
+    
+    <div class="products-grid" id="productsGrid">
+      <div>⏳ جاري تحميل المنتجات...</div>
+    </div>
+  </div>
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database.js"></script>
+  
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyD0ft0WLOoSI_gIeRfPcOrk6M5QWDhXDJ4",
+      authDomain: "koka-888c8.firebaseapp.com",
+      databaseURL: "https://koka-888c8-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId: "koka-888c8",
+      storageBucket: "koka-888c8.firebasestorage.app",
+      messagingSenderId: "625698485689",
+      appId: "1:625698485689:web:1667934b75691ee223b268",
+      measurementId: "G-78SQER5MY6"
+    };
+    
+    if (!firebase.apps.length) {
+      firebase.initializeApp(firebaseConfig);
+    }
+  </script>
+
+  <script src="js/firebase.js"></script>
+  <script>
+    let colorsCount = 0;
+    let sizesCount = 0;
+
+    // إدارة الألوان
+    function addColorField(colorName = '', colorValue = '#FFFFFF') {
+      colorsCount++;
+      const colorId = `color${colorsCount}`;
+      
+      const colorHtml = `
+        <div class="color-item" id="${colorId}">
+          <input type="color" value="${colorValue}" onchange="updateColorPreview('${colorId}')">
+          <input type="text" placeholder="اسم اللون" value="${colorName}" style="flex:1;">
+          <button type="button" class="btn btn-delete" onclick="removeColorField('${colorId}')">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+      `;
+      
+      document.getElementById('colorsContainer').insertAdjacentHTML('beforeend', colorHtml);
+    }
+
+    function updateColorPreview(colorId) {
+      // يمكن إضافة معاينة اللون إذا لزم الأمر
+    }
+
+    function removeColorField(colorId) {
+      document.getElementById(colorId).remove();
+    }
+
+    // إدارة المقاسات
+    function addSizeField(size = '', age = '') {
+      sizesCount++;
+      const sizeId = `size${sizesCount}`;
+      
+      const sizeHtml = `
+        <div class="form-row" id="${sizeId}">
+          <div class="form-group">
+            <input type="text" placeholder="المقاس (مثال: S1)" value="${size}">
+          </div>
+          <div class="form-group">
+            <input type="text" placeholder="العمر (مثال: 6-7 سنوات)" value="${age}">
+          </div>
+          <div class="form-group">
+            <button type="button" class="btn btn-delete" onclick="removeSizeField('${sizeId}')">
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+        </div>
+      `;
+      
+      document.getElementById('sizesContainer').insertAdjacentHTML('beforeend', sizeHtml);
+    }
+
+    function removeSizeField(sizeId) {
+      document.getElementById(sizeId).remove();
+    }
+
+    // تحميل وعرض المنتجات
+    async function loadProducts() {
+      const productsGrid = document.getElementById('productsGrid');
+      productsGrid.innerHTML = '<div>⏳ جاري تحميل المنتجات...</div>';
+      
+      try {
+        const products = await window.firebaseService.getProducts();
+        document.getElementById('productsCount').textContent = `عدد المنتجات: ${products.length}`;
+        
+        if (!products.length) {
+          productsGrid.innerHTML = '<div>لا توجد منتجات.</div>';
+          return;
+        }
+
+        productsGrid.innerHTML = '';
+        products.forEach(product => {
+          const productCard = document.createElement('div');
+          productCard.className = 'product-card';
+          
+          productCard.innerHTML = `
+            <img src="${product.image}" alt="${product.name}" class="product-image" onerror="this.src='https://via.placeholder.com/350x250?text=صورة+غير+متاحة'">
+            <div class="product-info">
+              <div class="product-name">${product.name}</div>
+              <div class="product-price">${product.price} دج</div>
+              <div class="product-meta">
+                <span>${product.colors ? product.colors.length : 0} ألوان</span>
+                <span>${product.sizes ? product.sizes.length : 0} مقاسات</span>
+                <span class="status-${product.active ? 'active' : 'inactive'}">
+                  ${product.active ? '🟢 نشط' : '🔴 غير نشط'}
+                </span>
+              </div>
+              <div class="product-actions">
+                <button class="btn btn-edit" onclick="editProduct('${product.id}')">
+                  <i class="fas fa-edit"></i> تعديل
+                </button>
+                <button class="btn btn-toggle" onclick="toggleProduct('${product.id}', ${!product.active})">
+                  <i class="fas fa-power-off"></i> ${product.active ? 'إيقاف' : 'تفعيل'}
+                </button>
+                <button class="btn btn-delete" onclick="deleteProduct('${product.id}')">
+                  <i class="fas fa-trash"></i> حذف
+                </button>
+              </div>
+            </div>
+          `;
+          
+          productsGrid.appendChild(productCard);
+        });
+      } catch (error) {
+        console.error('Error loading products:', error);
+        productsGrid.innerHTML = '<div>❌ خطأ في تحميل المنتجات</div>';
+      }
+    }
+
+    // إضافة منتج جديد
+    document.getElementById('productForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      
+      const productData = {
+        name: document.getElementById('productName').value,
+        price: parseInt(document.getElementById('productPrice').value),
+        image: document.getElementById('productImage').value,
+        description: document.getElementById('productDescription').value,
+        active: document.getElementById('productActive').checked,
+        colors: [],
+        sizes: []
+      };
+
+      // جمع الألوان
+      document.querySelectorAll('#colorsContainer .color-item').forEach(item => {
+        const inputs = item.querySelectorAll('input');
+        if (inputs[1].value.trim()) {
+          productData.colors.push(inputs[1].value.trim());
+        }
+      });
+
+      // جمع المقاسات
+      document.querySelectorAll('#sizesContainer .form-row').forEach(item => {
+        const inputs = item.querySelectorAll('input[type="text"]');
+        if (inputs[0].value.trim() && inputs[1].value.trim()) {
+          productData.sizes.push({
+            size: inputs[0].value.trim(),
+            age: inputs[1].value.trim(),
+            available: true
+          });
+        }
+      });
+
+      try {
+        const result = await window.firebaseService.addProduct(productData);
+        if (result.success) {
+          alert('✅ تم إضافة المنتج بنجاح!');
+          document.getElementById('productForm').reset();
+          // إعادة تعيين الحقول الديناميكية
+          document.getElementById('colorsContainer').innerHTML = '';
+          document.getElementById('sizesContainer').innerHTML = '';
+          colorsCount = 0;
+          sizesCount = 0;
+          loadProducts();
+        } else {
+          alert('❌ خطأ في إضافة المنتج: ' + result.error);
+        }
+      } catch (error) {
+        alert('❌ خطأ في إضافة المنتج: ' + error.message);
+      }
+    });
+
+    // دوال التحكم بالمنتجات
+    async function toggleProduct(productId, newStatus) {
+      try {
+        const result = await window.firebaseService.updateProduct(productId, { active: newStatus });
+        if (result.success) {
+          loadProducts();
+        } else {
+          alert('❌ خطأ في تحديث المنتج');
+        }
+      } catch (error) {
+        alert('❌ خطأ في تحديث المنتج: ' + error.message);
+      }
+    }
+
+    async function deleteProduct(productId) {
+      if (!confirm('هل أنت متأكد من حذف هذا المنتج؟')) return;
+      
+      try {
+        const result = await window.firebaseService.deleteProduct(productId);
+        if (result.success) {
+          alert('✅ تم حذف المنتج بنجاح!');
+          loadProducts();
+        } else {
+          alert('❌ خطأ في حذف المنتج');
+        }
+      } catch (error) {
+        alert('❌ خطأ في حذف المنتج: ' + error.message);
+      }
+    }
+
+    function editProduct(productId) {
+      // يمكن تطوير هذه الدالة لتحميل بيانات المنتج في الفورم للتعديل
+      alert('🚧 خاصية التعديل قيد التطوير...');
+    }
+
+    // التهيئة
+    document.addEventListener('DOMContentLoaded', function() {
+      // إضافة حقول افتراضية
+      addColorField('أبيض', '#FFFFFF');
+      addColorField('أسود', '#000000');
+      addSizeField('S1', '6-7 سنوات');
+      addSizeField('S2', '8-9 سنوات');
+      
+      loadProducts();
+    });
+  </script>
+</body>
+</html>
