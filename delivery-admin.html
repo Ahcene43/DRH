@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>إدارة التوصيل - BENAKRAB Shopping</title>
+  <link rel="stylesheet" href="css/style.css"/>
+  <style>
+    .delivery-admin {
+      padding: 2rem;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    
+    .delivery-stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin: 2rem 0;
+    }
+    
+    .stat-card {
+      background: white;
+      padding: 1.5rem;
+      border-radius: 8px;
+      text-align: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    
+    .delivery-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      margin-bottom: 2rem;
+    }
+    
+    .delivery-table th,
+    .delivery-table td {
+      padding: 12px 15px;
+      border-bottom: 1px solid #eee;
+      text-align: center;
+    }
+    
+    .delivery-table thead {
+      background: #f0f4f8;
+    }
+    
+    .price-input {
+      width: 100px;
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      text-align: center;
+    }
+    
+    .wilaya-section {
+      background: white;
+      padding: 1.5rem;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      margin-bottom: 1rem;
+    }
+    
+    .wilaya-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid #eee;
+    }
+  </style>
+</head>
+<body>
+  <header style="background: #4a90e2; color: white; padding: 1rem;">
+    <div class="container">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <h1 style="margin: 0;">🚚 إدارة أسعار التوصيل</h1>
+        <nav>
+          <a href="admin.html" class="btn btn-secondary" style="margin-right: 1rem;">
+            <i class="fas fa-arrow-right"></i> العودة للوحة التحكم
+          </a>
+          <a href="products-admin.html" class="btn btn-secondary">
+            <i class="fas fa-tshirt"></i> إدارة المنتجات
+          </a>
+        </nav>
+      </div>
+    </div>
+  </header>
+
+  <div class="delivery-admin">
+    <!-- إحصائيات سريعة -->
+    <div class="delivery-stats">
+      <div class="stat-card">
+        <div class="stat-number" id="totalWilayas">0</div>
+        <div class="stat-label">عدد الولايات</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number" id="avgHomePrice">0</div>
+        <div class="stat-label">متوسط سعر التوصيل للمنزل</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number" id="avgDeskPrice">0</div>
+        <div class="stat-label">متوسط سعر التوصيل للمكتب</div>
+      </div>
+    </div>
+
+    <!-- قسم إضافة ولاية جديدة -->
+    <div class="form-section">
+      <h2><i class="fas fa-plus"></i> إضافة ولاية جديدة</h2>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="newWilaya">اسم الولاية</label>
+          <input type="text" id="newWilaya" placeholder="أدخل اسم الولاية">
+        </div>
+        <div class="form-group">
+          <label for="newHomePrice">سعر التوصيل للمنزل (دج)</label>
+          <input type="number" id="newHomePrice" placeholder="0" min="0">
+        </div>
+        <div class="form-group">
+          <label for="newDeskPrice">سعر التوصيل للمكتب (دج)</label>
+          <input type="number" id="newDeskPrice" placeholder="0" min="0">
+        </div>
+        <div class="form-group">
+          <button class="btn btn-success" onclick="addNewWilaya()" style="margin-top: 1.5rem;">
+            <i class="fas fa-plus"></i> إضافة
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- قائمة أسعار التوصيل -->
+    <h2 style="margin: 2rem 0 1rem 0;"><i class="fas fa-list"></i> أسعار التوصيل حسب الولاية</h2>
+    
+    <div class="table-responsive">
+      <table class="delivery-table">
+        <thead>
+          <tr>
+            <th>الولاية</th>
+            <th>سعر التوصيل للمنزل (دج)</th>
+            <th>سعر التوصيل للمكتب (دج)</th>
+            <th>الإجراءات</th>
+          </tr>
+        </thead>
+        <tbody id="deliveryTableBody">
+          <tr><td colspan="4">⏳ جاري تحميل البيانات...</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- زر الحفظ -->
+    <div style="text-align: center; margin-top: 2rem;">
+      <button class="btn btn-primary btn-large" onclick="saveAllPrices()">
+        <i class="fas fa-save"></i> حفظ جميع التغييرات
+      </button>
+    </div>
+  </div>
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database.js"></script>
+  
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyD0ft0WLOoSI_gIeRfPcOrk6M5QWDhXDJ4",
+      authDomain: "koka-888c8.firebaseapp.com",
+      databaseURL: "https://koka-888c8-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId: "koka-888c8",
+      storageBucket: "koka-888c8.firebasestorage.app",
+      messagingSenderId: "625698485689",
+      appId: "1:625698485689:web:1667934b75691ee223b268",
+      measurementId: "G-78SQER5MY6"
+    };
+    
+    if (!firebase.apps.length) {
+      firebase.initializeApp(firebaseConfig);
+    }
+  </script>
+
+  <script src="js/firebase.js"></script>
+  <script>
+    let deliveryPrices = {};
+    let modifiedPrices = {};
+
+    // تحميل أسعار التوصيل
+    async function loadDeliveryPrices() {
+      const tableBody = document.getElementById('deliveryTableBody');
+      tableBody.innerHTML = '<tr><td colspan="4">⏳ جاري تحميل البيانات...</td></tr>';
+      
+      try {
+        // جلب البيانات من Firebase
+        const snapshot = await firebase.database().ref('deliveryPrices').once('value');
+        deliveryPrices = snapshot.val() || {};
+        
+        // إحصائيات
+        updateStats(deliveryPrices);
+        
+        // عرض البيانات
+        displayDeliveryPrices(deliveryPrices);
+        
+      } catch (error) {
+        console.error('Error loading delivery prices:', error);
+        tableBody.innerHTML = '<tr><td colspan="4">❌ خطأ في تحميل البيانات</td></tr>';
+      }
+    }
+
+    // تحديث الإحصائيات
+    function updateStats(prices) {
+      const wilayas = Object.keys(prices);
+      const totalWilayas = wilayas.length;
+      
+      let totalHome = 0;
+      let totalDesk = 0;
+      let countHome = 0;
+      let countDesk = 0;
+      
+      wilayas.forEach(wilaya => {
+        if (prices[wilaya].home) {
+          totalHome += prices[wilaya].home;
+          countHome++;
+        }
+        if (prices[wilaya].desk) {
+          totalDesk += prices[wilaya].desk;
+          countDesk++;
+        }
+      });
+      
+      document.getElementById('totalWilayas').textContent = totalWilayas;
+      document.getElementById('avgHomePrice').textContent = countHome ? Math.round(totalHome / countHome) + ' دج' : '0 دج';
+      document.getElementById('avgDeskPrice').textContent = countDesk ? Math.round(totalDesk / countDesk) + ' دج' : '0 دج';
+    }
+
+    // عرض أسعار التوصيل
+    function displayDeliveryPrices(prices) {
+      const tableBody = document.getElementById('deliveryTableBody');
+      
+      if (!Object.keys(prices).length) {
+        tableBody.innerHTML = '<tr><td colspan="4">لا توجد بيانات.</td></tr>';
+        return;
+      }
+      
+      tableBody.innerHTML = '';
+      Object.keys(prices).sort().forEach(wilaya => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td><strong>${wilaya}</strong></td>
+          <td>
+            <input type="number" 
+                   class="price-input" 
+                   value="${prices[wilaya].home || 0}" 
+                   min="0"
+                   onchange="markAsModified('${wilaya}', 'home', this.value)">
+          </td>
+          <td>
+            <input type="number" 
+                   class="price-input" 
+                   value="${prices[wilaya].desk || 0}" 
+                   min="0"
+                   onchange="markAsModified('${wilaya}', 'desk', this.value)">
+          </td>
+          <td>
+            <button class="btn btn-delete" onclick="deleteWilaya('${wilaya}')">
+              <i class="fas fa-trash"></i> حذف
+            </button>
+          </td>
+        `;
+        tableBody.appendChild(row);
+      });
+    }
+
+    // تحديد التغييرات
+    function markAsModified(wilaya, type, value) {
+      if (!modifiedPrices[wilaya]) {
+        modifiedPrices[wilaya] = {};
+      }
+      modifiedPrices[wilaya][type] = parseInt(value) || 0;
+    }
+
+    // إضافة ولاية جديدة
+    async function addNewWilaya() {
+      const wilayaName = document.getElementById('newWilaya').value.trim();
+      const homePrice = parseInt(document.getElementById('newHomePrice').value) || 0;
+      const deskPrice = parseInt(document.getElementById('newDeskPrice').value) || 0;
+      
+      if (!wilayaName) {
+        alert('⚠️ الرجاء إدخال اسم الولاية');
+        return;
+      }
+      
+      if (deliveryPrices[wilayaName]) {
+        alert('⚠️ هذه الولاية موجودة مسبقاً');
+        return;
+      }
+      
+      try {
+        // إضافة الولاية الجديدة
+        await firebase.database().ref(`deliveryPrices/${wilayaName}`).set({
+          home: homePrice,
+          desk: deskPrice
+        });
+        
+        alert('✅ تم إضافة الولاية بنجاح!');
+        
+        // إعادة تعيين الحقول
+        document.getElementById('newWilaya').value = '';
+        document.getElementById('newHomePrice').value = '';
+        document.getElementById('newDeskPrice').value = '';
+        
+        // إعادة تحميل البيانات
+        loadDeliveryPrices();
+        
+      } catch (error) {
+        alert('❌ خطأ في إضافة الولاية: ' + error.message);
+      }
+    }
+
+    // حذف ولاية
+    async function deleteWilaya(wilaya) {
+      if (!confirm(`هل أنت متأكد من حذف ولاية "${wilaya}"؟`)) return;
+      
+      try {
+        await firebase.database().ref(`deliveryPrices/${wilaya}`).remove();
+        alert('✅ تم حذف الولاية بنجاح!');
+        loadDeliveryPrices();
+      } catch (error) {
+        alert('❌ خطأ في حذف الولاية: ' + error.message);
+      }
+    }
+
+    // حفظ جميع التغييرات
+    async function saveAllPrices() {
+      if (!Object.keys(modifiedPrices).length) {
+        alert('⚠️ لم تقم بإجراء أي تغييرات');
+        return;
+      }
+      
+      try {
+        const updates = {};
+        Object.keys(modifiedPrices).forEach(wilaya => {
+          updates[`deliveryPrices/${wilaya}/home`] = modifiedPrices[wilaya].home;
+          updates[`deliveryPrices/${wilaya}/desk`] = modifiedPrices[wilaya].desk;
+        });
+        
+        await firebase.database().ref().update(updates);
+        
+        alert(`✅ تم حفظ ${Object.keys(modifiedPrices).length} تغيير بنجاح!`);
+        modifiedPrices = {};
+        loadDeliveryPrices();
+        
+      } catch (error) {
+        alert('❌ خطأ في حفظ التغييرات: ' + error.message);
+      }
+    }
+
+    // التهيئة
+    document.addEventListener('DOMContentLoaded', function() {
+      loadDeliveryPrices();
+    });
+  </script>
+</body>
+</html>
