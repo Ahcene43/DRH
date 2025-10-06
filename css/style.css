@@ -199,7 +199,7 @@ body {
 }
 
 .slide-image {
-  width: 99%;
+  width:50%;
   height: 550px;
   object-fit: cover;
 }
